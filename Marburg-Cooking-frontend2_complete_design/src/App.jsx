@@ -43,23 +43,7 @@ export default function App() {
       localStorage.setItem('isDemoMode', 'true');
       
    
-      const banner = document.createElement('div');
-      banner.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: orange;
-        color: black;
-        text-align: center;
-        padding: 5px;
-        font-size: 14px;
-        font-weight: bold;
-        z-index: 10000;
-      `;
-      banner.textContent = '🚀 DEMO MODE ';
-      document.body.appendChild(banner);
-    }
+      
   }, []);
   return (
     <>
