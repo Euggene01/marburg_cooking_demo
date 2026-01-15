@@ -10,6 +10,7 @@ import KontaktPage from "./pages/KontaktPage";
 import ProtectedRoute from "./components/protectedRoute";
 import Dashboard from "./pages/Dashboard";
 import EventRegistration from "./pages/EventRegistration";
+import { useEffect } from 'react';
 
 import ProfilePage from "./pages/ProfilePage";
 import MyKitchenPage from "./pages/MyKitchenPage";
@@ -21,6 +22,45 @@ import ChatPage from "./pages/ChatPage";
 
 
 export default function App() {
+   useEffect(() => {
+    // Автоматический логин на Vercel
+    if (window.location.hostname.includes('vercel.app')) {
+      console.log('🚀 VERCEL DEMO MODE: Auto-login enabled');
+      
+      const demoUser = {
+        id: 999,
+        username: 'demo_user',
+        email: 'demo@marburgcooking.com',
+        name: 'Demo User',
+        role: 'user',
+        isDemo: true
+      };
+      
+     
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      localStorage.setItem('auth_token', 'demo_token_' + Date.now());
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('isDemoMode', 'true');
+      
+   
+      const banner = document.createElement('div');
+      banner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: orange;
+        color: black;
+        text-align: center;
+        padding: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 10000;
+      `;
+      banner.textContent = '🚀 DEMO MODE ';
+      document.body.appendChild(banner);
+    }
+  }, []);
   return (
     <>
       <Header />
