@@ -64,26 +64,7 @@ export function AuthProvider({ children }) {
       }
       
       // Добавляем баннер
-      if (!document.getElementById('demo-banner')) {
-        const banner = document.createElement('div');
-        banner.id = 'demo-banner';
-        banner.style.cssText = `
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          background: linear-gradient(90deg, #FF9800, #FF5722);
-          color: white;
-          text-align: center;
-          padding: 8px;
-          font-size: 14px;
-          font-weight: bold;
-          z-index: 9999;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        `;
-        banner.innerHTML = '🚀 ДЕМО-РЕЖИМ | Автоматически залогинен';
-        document.body.appendChild(banner);
-      }
+      
       
       console.log('🔐 Current auth state:', {
         token: localStorage.getItem("token"),
