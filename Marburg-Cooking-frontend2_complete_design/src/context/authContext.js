@@ -4,22 +4,67 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // ============ ДОБАВЬТЕ ЭТО В НАЧАЛЕ КОМПОНЕНТА ============
-  // Автологин при загрузке на Vercel
+  // ============ ИСПРАВЛЕННАЯ ИНИЦИАЛИЗАЦИЯ ============
+  const [token, setToken] = useState(() => {
+    const storedToken = localStorage.getItem("token");
+    // Если на Vercel и нет токена - устанавливаем демо-токен
+    if (window.location.hostname.includes('vercel.app') && !storedToken) {
+      const demoToken = "demo_token_" + Date.now();
+      localStorage.setItem("token", demoToken);
+      localStorage.setItem("username", "demo_user");
+      localStorage.setItem("email", "demo@marburgcooking.com");
+      localStorage.setItem("demo_setup", "true");
+      return demoToken;
+    }
+    return storedToken;
+  });
+
+  const [username, setUsername] = useState(() => {
+    const storedUser = localStorage.getItem("username");
+    if (window.location.hostname.includes('vercel.app') && !storedUser) {
+      return "demo_user";
+    }
+    return storedUser;
+  });
+
+  const [email, setEmail] = useState(() => {
+    const storedEmail = localStorage.getItem("email");
+    if (window.location.hostname.includes('vercel.app') && !storedEmail) {
+      return "demo@marburgcooking.com";
+    }
+    return storedEmail;
+  });
+
+  const isAuthenticated = Boolean(token);
+  // ============ КОНЕЦ ИСПРАВЛЕНИЯ ============
+
+  // ============ ДОБАВЬТЕ ЭТОТ ЭФФЕКТ ============
   useEffect(() => {
+    // Автологин при загрузке на Vercel
     if (window.location.hostname.includes('vercel.app')) {
-      // Проверяем, не установили ли уже демо-режим
-      if (!localStorage.getItem('demo_setup')) {
-        console.log('🚀 VERCEL DEMO MODE: Setting up auto-login');
+      console.log('🔐 VERCEL DEMO: Checking auth state...');
+      
+      // Принудительно устанавливаем если чего-то нет
+      if (!localStorage.getItem("token")) {
+        console.log('🔐 Setting demo token...');
+        const demoToken = "demo_token_" + Date.now();
         
-        // Устанавливаем демо-данные
-        localStorage.setItem("token", "demo_token_" + Date.now());
+        localStorage.setItem("token", demoToken);
         localStorage.setItem("username", "demo_user");
         localStorage.setItem("email", "demo@marburgcooking.com");
         localStorage.setItem("demo_setup", "true");
         localStorage.setItem("lastAuthChange", Date.now().toString());
         
-        // Добавляем баннер
+        // ОБНОВЛЯЕМ СОСТОЯНИЕ!
+        setToken(demoToken);
+        setUsername("demo_user");
+        setEmail("demo@marburgcooking.com");
+        
+        window.dispatchEvent(new Event("authChanged"));
+      }
+      
+      // Добавляем баннер
+      if (!document.getElementById('demo-banner')) {
         const banner = document.createElement('div');
         banner.id = 'demo-banner';
         banner.style.cssText = `
@@ -36,47 +81,18 @@ export function AuthProvider({ children }) {
           z-index: 9999;
           box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         `;
-        banner.innerHTML = '🚀 ДЕМО-РЕЖИМ | Автоматически залогинен как <strong>Demo User</strong>';
+        banner.innerHTML = '🚀 ДЕМО-РЕЖИМ | Автоматически залогинен';
         document.body.appendChild(banner);
-        
-        // Обновляем состояние компонента
-        setToken(localStorage.getItem("token"));
-        setUsername(localStorage.getItem("username"));
-        setEmail(localStorage.getItem("email"));
-        
-        // Обновляем title страницы
-        document.title = `[DEMO] ${document.title}`;
-        
-        // Триггерим событие для обновления других вкладок
-        window.dispatchEvent(new Event("authChanged"));
       }
+      
+      console.log('🔐 Current auth state:', {
+        token: localStorage.getItem("token"),
+        username: localStorage.getItem("username"),
+        isAuthenticated: !!localStorage.getItem("token")
+      });
     }
-  }, []);
-  // ============ КОНЕЦ ДОБАВЛЕНИЯ ============
-
-  const [token, setToken] = useState(() => {
-    // Инициализация с учетом демо-режима
-    if (window.location.hostname.includes('vercel.app')) {
-      return localStorage.getItem("token") || "demo_token";
-    }
-    return localStorage.getItem("token");
-  });
-
-  const isAuthenticated = Boolean(token);
-  
-  const [username, setUsername] = useState(() => {
-    if (window.location.hostname.includes('vercel.app')) {
-      return localStorage.getItem("username") || "demo_user";
-    }
-    return localStorage.getItem("username");
-  });
-  
-  const [email, setEmail] = useState(() => {
-    if (window.location.hostname.includes('vercel.app')) {
-      return localStorage.getItem("email") || "demo@marburgcooking.com";
-    }
-    return localStorage.getItem("email");
-  });
+  }, []); // Пустой массив зависимостей - выполняется один раз
+  // ============ КОНЕЦ ЭФФЕКТА ============
 
   useEffect(() => {
     const onStorage = (e) => {
@@ -105,7 +121,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    // На Vercel не даем разлогиниться в демо-режиме
+    // На Vercel не даем разлогиниться
     if (!window.location.hostname.includes('vercel.app')) {
       localStorage.removeItem("token");
       localStorage.removeItem("email");
@@ -116,11 +132,13 @@ export function AuthProvider({ children }) {
       setEmail(null);
       window.dispatchEvent(new Event("authChanged"));
     } else {
-      alert("В демо-режиме выход из системы отключен. Для тестирования используйте локальный сервер.");
+      alert("В демо-режиме выход отключен");
     }
   };
 
-  // return without JSX so file stays valid as .js
+  // Для отладки
+  console.log('🔄 AuthProvider render:', { token, isAuthenticated, username });
+
   return React.createElement(
     AuthContext.Provider,
     { value: { token, username, email, isAuthenticated, login, logout } },
