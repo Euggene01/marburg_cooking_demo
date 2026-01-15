@@ -43,7 +43,43 @@ export function AuthProvider({ children }) {
     // Автологин при загрузке на Vercel
     if (window.location.hostname.includes('vercel.app')) {
       console.log('🔐 VERCEL DEMO: Checking auth state...');
+      setTimeout(() => {
+      // 1. Удалить по ID
+      const bannerById = document.getElementById('demo-banner');
+      if (bannerById) {
+        bannerById.remove();
+        console.log('🗑️ Удален баннер по ID');
+      }
       
+      // 2. Удалить по цвету
+      document.querySelectorAll('body > *').forEach(el => {
+        try {
+          const style = window.getComputedStyle(el);
+          if (style.backgroundColor === 'rgb(255, 152, 0)' || 
+              style.backgroundColor === 'rgb(255, 87, 34)') {
+            el.remove();
+            console.log('🗑️ Удален баннер по цвету');
+          }
+        } catch (e) {}
+      });
+      
+      // 3. Удалить по тексту
+      const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_ELEMENT,
+        null,
+        false
+      );
+      
+      let node;
+      while (node = walker.nextNode()) {
+        if (node.textContent?.includes('ДЕМО') || 
+            node.textContent?.includes('DEMO')) {
+          node.remove();
+          console.log('🗑️ Удален баннер по тексту');
+        }
+      }
+    }, 100); // Даем время на рендеринг
       // Принудительно устанавливаем если чего-то нет
       if (!localStorage.getItem("token")) {
         console.log('🔐 Setting demo token...');
